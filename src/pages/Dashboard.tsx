@@ -1,16 +1,85 @@
+import { useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { TrendingUp, Target, Award, Clock, Plus, Loader2, FileText, CheckCircle2 } from "lucide-react";
 import { useBids } from "@/hooks/useData";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
+
+type BidForm = {
+  title: string;
+  authority: string;
+  deadline: string;
+  value: string;
+  win_probability: string;
+  compliance_score: string;
+  status: "active" | "submitted" | "won" | "lost";
+};
+
+const EMPTY_BID_FORM: BidForm = {
+  title: "",
+  authority: "",
+  deadline: "",
+  value: "",
+  win_probability: "",
+  compliance_score: "",
+  status: "active",
+};
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { bids, loading } = useBids();
+  const { bids, loading, addBid } = useBids();
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [form, setForm] = useState<BidForm>(EMPTY_BID_FORM);
+  const [saving, setSaving] = useState(false);
+
+  const handleAddBid = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.title.trim() || !form.authority.trim() || !form.deadline) {
+      toast.error("Title, authority, and deadline are required");
+      return;
+    }
+    setSaving(true);
+    const err = await addBid({
+      title: form.title.trim(),
+      authority: form.authority.trim(),
+      deadline: new Date(form.deadline).toISOString(),
+      value: Number(form.value) || 0,
+      win_probability: Math.min(100, Math.max(0, Number(form.win_probability) || 0)),
+      compliance_score: Math.min(100, Math.max(0, Number(form.compliance_score) || 0)),
+      status: form.status,
+    });
+    setSaving(false);
+    if (err) {
+      toast.error(err.message);
+    } else {
+      toast.success("Bid added successfully");
+      setForm(EMPTY_BID_FORM);
+      setDialogOpen(false);
+    }
+  };
 
   const activeBids = bids.filter((b) => b.status === "active");
   const wonBids = bids.filter((b) => b.status === "won");
@@ -40,12 +109,13 @@ export default function Dashboard() {
               {totalValue > 0 && ` • £${(totalValue / 1_000_000).toFixed(1)}M total value`}
             </p>
           </div>
-          <Link to="/document-processor">
-            <Button className="bg-neon-green hover:bg-neon-glow text-background font-semibold">
-              <Plus className="w-4 h-4 mr-2" />
-              New Bid
-            </Button>
-          </Link>
+          <Button
+            onClick={() => { setForm(EMPTY_BID_FORM); setDialogOpen(true); }}
+            className="bg-neon-green hover:bg-neon-glow text-background font-semibold"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Bid
+          </Button>
         </div>
 
         {/* Stats Grid */}
@@ -142,14 +212,23 @@ export default function Dashboard() {
                 <FileText className="w-16 h-16 text-muted-foreground/30 mx-auto" />
                 <h3 className="text-xl font-semibold text-muted-foreground">No active bids yet</h3>
                 <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                  Upload your first tender document to start tracking bids, compliance scores, and win probabilities.
+                  Add your first bid manually or upload a tender document to start tracking compliance scores and win probabilities.
                 </p>
-                <Link to="/document-processor">
-                  <Button className="bg-neon-green hover:bg-neon-glow text-background font-semibold mt-2">
+                <div className="flex items-center justify-center gap-3 mt-2">
+                  <Button
+                    onClick={() => { setForm(EMPTY_BID_FORM); setDialogOpen(true); }}
+                    className="bg-neon-green hover:bg-neon-glow text-background font-semibold"
+                  >
                     <Plus className="w-4 h-4 mr-2" />
-                    Add Your First Bid
+                    Add Bid Manually
                   </Button>
-                </Link>
+                  <Link to="/document-processor">
+                    <Button variant="outline" className="border-neon-green/30 hover:border-neon-green">
+                      <FileText className="w-4 h-4 mr-2" />
+                      Upload Document
+                    </Button>
+                  </Link>
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
@@ -252,6 +331,147 @@ export default function Dashboard() {
           </Card>
         )}
       </div>
+      {/* ── Add Bid Dialog ──────────────────────────────────────────────────── */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="bg-card border-border/50 max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Add New Bid</DialogTitle>
+            <DialogDescription>
+              Manually enter bid details to track in your pipeline.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleAddBid}>
+            <div className="space-y-4 py-2">
+              {/* Title */}
+              <div className="space-y-2">
+                <Label htmlFor="bid-title">Bid Title *</Label>
+                <Input
+                  id="bid-title"
+                  placeholder="e.g. NHS Digital Transformation Programme"
+                  value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  className="bg-background/50 border-border/50 focus:border-neon-green"
+                  required
+                />
+              </div>
+
+              {/* Authority */}
+              <div className="space-y-2">
+                <Label htmlFor="bid-authority">Contracting Authority *</Label>
+                <Input
+                  id="bid-authority"
+                  placeholder="e.g. NHS England"
+                  value={form.authority}
+                  onChange={(e) => setForm({ ...form, authority: e.target.value })}
+                  className="bg-background/50 border-border/50 focus:border-neon-green"
+                  required
+                />
+              </div>
+
+              {/* Deadline */}
+              <div className="space-y-2">
+                <Label htmlFor="bid-deadline">Submission Deadline *</Label>
+                <Input
+                  id="bid-deadline"
+                  type="date"
+                  value={form.deadline}
+                  onChange={(e) => setForm({ ...form, deadline: e.target.value })}
+                  className="bg-background/50 border-border/50 focus:border-neon-green"
+                  required
+                />
+              </div>
+
+              {/* Status */}
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select
+                  value={form.status}
+                  onValueChange={(v) => setForm({ ...form, status: v as BidForm["status"] })}
+                >
+                  <SelectTrigger className="bg-background/50 border-border/50 focus:border-neon-green">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border-border/50">
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="submitted">Submitted</SelectItem>
+                    <SelectItem value="won">Won</SelectItem>
+                    <SelectItem value="lost">Lost</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Value */}
+              <div className="space-y-2">
+                <Label htmlFor="bid-value">Contract Value (£)</Label>
+                <Input
+                  id="bid-value"
+                  type="number"
+                  min="0"
+                  placeholder="e.g. 5000000"
+                  value={form.value}
+                  onChange={(e) => setForm({ ...form, value: e.target.value })}
+                  className="bg-background/50 border-border/50 focus:border-neon-green"
+                />
+                <p className="text-xs text-muted-foreground">Enter full value in pounds (e.g. 5000000 for £5M)</p>
+              </div>
+
+              {/* Win Probability + Compliance Score */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="bid-win-prob">Win Probability (%)</Label>
+                  <Input
+                    id="bid-win-prob"
+                    type="number"
+                    min="0"
+                    max="100"
+                    placeholder="0–100"
+                    value={form.win_probability}
+                    onChange={(e) => setForm({ ...form, win_probability: e.target.value })}
+                    className="bg-background/50 border-border/50 focus:border-neon-green"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bid-compliance">Compliance Score (%)</Label>
+                  <Input
+                    id="bid-compliance"
+                    type="number"
+                    min="0"
+                    max="100"
+                    placeholder="0–100"
+                    value={form.compliance_score}
+                    onChange={(e) => setForm({ ...form, compliance_score: e.target.value })}
+                    className="bg-background/50 border-border/50 focus:border-neon-green"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter className="gap-2 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDialogOpen(false)}
+                className="border-border/50 hover:border-neon-green/30"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={saving}
+                className="bg-neon-green hover:bg-neon-glow text-background font-semibold"
+              >
+                {saving ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Plus className="w-4 h-4 mr-2" />
+                )}
+                Add Bid
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
