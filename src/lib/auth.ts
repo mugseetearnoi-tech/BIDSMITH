@@ -1,33 +1,80 @@
-import { User } from "@/types";
+import { User } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 
-const STORAGE_KEY = "bidsmith_user";
+export interface AuthUser {
+  id: string;
+  email: string;
+  username: string;
+  avatar?: string;
+}
 
-export const mockUser: User = {
-  id: "usr_001",
-  name: "James Patterson",
-  email: "james.patterson@councilbids.co.uk",
-  company: "London Borough Council",
-  plan: "enterprise",
+// ─── Map Supabase user to AuthUser (synchronous, no DB calls) ────────────────
+export function mapSupabaseUser(user: User): AuthUser {
+  return {
+    id: user.id,
+    email: user.email!,
+    username:
+      user.user_metadata?.username ||
+      user.user_metadata?.full_name ||
+      user.email!.split("@")[0],
+    avatar: user.user_metadata?.avatar_url || user.user_metadata?.picture,
+  };
+}
+
+// ─── OTP + Password auth service ─────────────────────────────────────────────
+export const authService = {
+  async sendOtp(email: string) {
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: true },
+    });
+    if (error) throw error;
+  },
+
+  async verifyOtpAndSetPassword(
+    email: string,
+    token: string,
+    password: string
+  ) {
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: "email",
+    });
+    if (error) throw error;
+
+    const username = email.split("@")[0];
+    const { data: updateData, error: updateError } =
+      await supabase.auth.updateUser({
+        password,
+        data: { username },
+      });
+    if (updateError) throw updateError;
+
+    return updateData.user!;
+  },
+
+  async signInWithPassword(email: string, password: string) {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) throw error;
+    return data.user;
+  },
+
+  async signOut() {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+  },
 };
 
-export const login = (email: string, password: string): User | null => {
-  // Mock authentication
-  if (email && password) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(mockUser));
-    return mockUser;
-  }
-  return null;
-};
+// ─── Legacy localStorage helpers (kept for backward compat, now delegate to Supabase) ──
+export function isAuthenticated(): boolean {
+  // Will be checked asynchronously via useEffect in App.tsx
+  return false;
+}
 
-export const logout = (): void => {
-  localStorage.removeItem(STORAGE_KEY);
-};
-
-export const getCurrentUser = (): User | null => {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  return stored ? JSON.parse(stored) : null;
-};
-
-export const isAuthenticated = (): boolean => {
-  return getCurrentUser() !== null;
-};
+export function logout() {
+  authService.signOut();
+}

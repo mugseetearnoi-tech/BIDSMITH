@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { LayoutDashboard, FileText, Settings, LogOut, Zap, Menu, X, CreditCard, Target, Brain, TrendingUp, Users, Network, Clock, Radio, Gauge } from "lucide-react";
-import { logout } from "@/lib/auth";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -26,8 +26,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     { name: "Billing", path: "/billing", icon: CreditCard },
   ];
 
-  const handleLogout = () => {
-    logout();
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
     window.location.href = "/";
   };
 
