@@ -1,0 +1,869 @@
+{
+  "project": {
+    "name": "BIDSMITH",
+    "fullName": "BIDSMITH — UK Public Sector Bid Intelligence Operating System",
+    "version": "1.0.0",
+    "domain": "www.bidsmith.co.uk",
+    "description": "Premium B2B SaaS platform for UK public sector procurement teams to manage bids, track competitors, analyse team performance, and forecast win probabilities using AI-powered intelligence.",
+    "targetUsers": "UK public sector bid managers, procurement consultants, bid writers, and project managers",
+    "coreEmotions": ["confident", "strategic", "decisive"],
+    "status": "production-ready"
+  },
+
+  "techStack": {
+    "frontend": {
+      "framework": "React 18.3.1",
+      "language": "TypeScript 5.5.3",
+      "bundler": "Vite 5.4.1",
+      "styling": "Tailwind CSS 3.4.11",
+      "componentLibrary": "shadcn/ui",
+      "routing": "React Router DOM 6.x",
+      "stateManagement": {
+        "serverState": "Custom hooks with Supabase client",
+        "localState": "React useState",
+        "globalState": "React Context (AuthContext)",
+        "urlState": "React Router"
+      },
+      "charts": "Recharts",
+      "icons": "lucide-react",
+      "notifications": "sonner (toast)",
+      "forms": "react-hook-form + zod (available)"
+    },
+    "backend": {
+      "provider": "OnSpace Cloud (Supabase-compatible)",
+      "url": "https://ohczptvyzldrgchkohcz.backend.onspace.ai",
+      "database": "PostgreSQL",
+      "authentication": "Supabase Auth (OTP + Password)",
+      "storage": "Supabase Storage",
+      "realtime": "Polling (30s intervals — Realtime not supported on OnSpace Cloud)",
+      "edgeFunctions": "Supabase Edge Functions (Deno)"
+    }
+  },
+
+  "designSystem": {
+    "metaphor": "HUD / Terminal — dark glass panels with neon green data overlays",
+    "colorPalette": {
+      "background": "#0a0a0a (hsl 0 0% 4%)",
+      "card": "#141414 (hsl 0 0% 8%)",
+      "secondary": "#1a1a1a (hsl 0 0% 10%)",
+      "border": "#262626",
+      "neonGreen": "#4ADE80",
+      "neonGlow": "#22C55E",
+      "mutedForeground": "#9CA3AF",
+      "foreground": "#F9FAFB"
+    },
+    "typography": {
+      "heading": "system-ui / Inter (600–700 weight)",
+      "body": "system-ui / Inter (400 weight, 16px base)",
+      "lineHeight": "1.6 for body text",
+      "scale": "1.25 modular — 16 / 20 / 24 / 32 / 40 / 48px"
+    },
+    "spacing": "8px grid (4, 8, 12, 16, 24, 32, 48, 64px)",
+    "borderRadius": "8px standard, 12px cards, 4px badges",
+    "signatures": [
+      "Dark HUD panels with neon green (#4ADE80) accent glows",
+      "Gradient card backgrounds with border-neon-green/30 on key stats",
+      "Matrix pattern background texture (bg-matrix-pattern)",
+      "text-gradient class on hero headings",
+      "card-glow CSS shadow on active/important cards"
+    ],
+    "animations": {
+      "slideUp": "animate-slide-up on page mount",
+      "spin": "animate-spin on loading states",
+      "transition": "transition-all duration-300 on interactive elements"
+    }
+  },
+
+  "authentication": {
+    "method": "OTP + Password (email-based)",
+    "flow": {
+      "registration": [
+        "1. Enter email → POST signInWithOtp (shouldCreateUser: true)",
+        "2. Enter 4-digit OTP from email",
+        "3. Set password (min 6 chars) → verifyOtp + updateUser",
+        "4. Auto-login + redirect /dashboard"
+      ],
+      "login": [
+        "1. Enter email + password → signInWithPassword",
+        "2. Auto-login + redirect /dashboard"
+      ],
+      "sessionManagement": [
+        "getSession() on app mount for page-refresh recovery",
+        "onAuthStateChange listener for SIGNED_IN / SIGNED_OUT / TOKEN_REFRESHED",
+        "pkce flowType, persistSession true, autoRefreshToken true"
+      ],
+      "logout": "supabase.auth.signOut() → redirect /"
+    },
+    "protectedRoutes": [
+      "/dashboard",
+      "/document-processor",
+      "/competitor-intelligence",
+      "/competitor-swot",
+      "/win-loss-analysis",
+      "/team-performance",
+      "/collaboration-network",
+      "/collaboration-timeline",
+      "/live-collaboration-tracker",
+      "/interaction-quality",
+      "/billing"
+    ],
+    "publicRoutes": ["/", "/login", "/pricing"],
+    "authContext": "src/contexts/AuthContext.tsx",
+    "authService": "src/lib/auth.ts",
+    "supabaseClient": "src/lib/supabase.ts"
+  },
+
+  "navigation": {
+    "topBar": {
+      "left": "Hamburger menu (mobile) + BIDSMITH logo (links /)",
+      "right": "Logout button"
+    },
+    "sidebar": {
+      "width": "256px (w-64)",
+      "behaviour": "Fixed on desktop, slide-over on mobile",
+      "items": [
+        { "label": "Dashboard",               "path": "/dashboard",                   "icon": "LayoutDashboard" },
+        { "label": "Document Processor",      "path": "/document-processor",          "icon": "FileText" },
+        { "label": "Competitor Intelligence", "path": "/competitor-intelligence",     "icon": "Target" },
+        { "label": "SWOT Analysis",           "path": "/competitor-swot",             "icon": "Brain" },
+        { "label": "Win/Loss Analysis",       "path": "/win-loss-analysis",           "icon": "TrendingUp" },
+        { "label": "Team Performance",        "path": "/team-performance",            "icon": "Users" },
+        { "label": "Collaboration Network",   "path": "/collaboration-network",       "icon": "Network" },
+        { "label": "Collaboration Timeline",  "path": "/collaboration-timeline",      "icon": "Clock" },
+        { "label": "Live Tracker",            "path": "/live-collaboration-tracker",  "icon": "Radio" },
+        { "label": "Interaction Quality",     "path": "/interaction-quality",         "icon": "Gauge" },
+        { "label": "Billing",                 "path": "/billing",                     "icon": "CreditCard" }
+      ],
+      "bottomAction": "Settings button → /billing"
+    }
+  },
+
+  "pages": {
+    "LandingPage": {
+      "path": "/",
+      "file": "src/pages/LandingPage.tsx",
+      "access": "public",
+      "description": "Conversion-focused marketing page for BIDSMITH",
+      "sections": [
+        "Hero — headline, sub-headline, CTA (Start Free Trial / Watch Demo)",
+        "Stats bar — key metrics (win rate improvement, time saved, etc.)",
+        "Feature highlights — 6 cards with icons",
+        "Pricing teaser — 3 tiers",
+        "CTA footer — final conversion block"
+      ],
+      "dataSource": "FEATURE_HIGHLIGHTS + PRICING_TIERS from constants/index.ts"
+    },
+
+    "LoginPage": {
+      "path": "/login",
+      "file": "src/pages/LoginPage.tsx",
+      "access": "public (redirects to /dashboard if already logged in)",
+      "description": "Multi-step auth form: login | register (email → OTP → password)",
+      "modes": ["login", "register_email", "register_otp", "register_password"],
+      "props": ["onLogin: (user: AuthUser) => void"],
+      "dataFlow": "authService → mapSupabaseUser → AuthContext.login → navigate(/dashboard)"
+    },
+
+    "PricingPage": {
+      "path": "/pricing",
+      "file": "src/pages/PricingPage.tsx",
+      "access": "public",
+      "description": "3-tier pricing display with feature comparison",
+      "tiers": [
+        { "id": "starter",    "name": "Starter",    "monthlyPrice": 299  },
+        { "id": "professional","name": "Professional","monthlyPrice": 699 },
+        { "id": "enterprise", "name": "Enterprise", "monthlyPrice": 1499 }
+      ],
+      "dataSource": "PRICING_TIERS from constants/index.ts"
+    },
+
+    "Dashboard": {
+      "path": "/dashboard",
+      "file": "src/pages/Dashboard.tsx",
+      "access": "protected",
+      "description": "Main bid pipeline overview with KPI cards and active bid list",
+      "hooks": ["useBids", "useAuth"],
+      "features": [
+        "Welcome header with username + pipeline summary",
+        "KPI cards: Active Bids, Avg Win Probability, Avg Compliance, Next Deadline",
+        "Active bid pipeline list with status badges and win probability",
+        "Won bids summary panel",
+        "Add Bid dialog (manual entry)",
+        "Empty state with Add Bid + Upload Document CTAs"
+      ],
+      "addBidDialog": {
+        "fields": ["title*", "authority*", "deadline*", "status", "value(£)", "win_probability(%)", "compliance_score(%)"],
+        "validation": "title + authority + deadline required",
+        "onSuccess": "toast + close dialog + refetch"
+      }
+    },
+
+    "DocumentProcessor": {
+      "path": "/document-processor",
+      "file": "src/pages/DocumentProcessor.tsx",
+      "access": "protected",
+      "description": "Drag-and-drop PDF upload pipeline with AI analysis simulation",
+      "hooks": ["useDocuments"],
+      "features": [
+        "Drag-and-drop upload zone for PDF/Word documents",
+        "Processing status tracker (upload → extract → analyse → complete)",
+        "PPN06/20 compliance check display",
+        "Key requirements extraction list",
+        "Deadline extraction and display",
+        "File size and metadata display",
+        "Document history list with status badges"
+      ],
+      "storageNote": "Files should be uploaded to Supabase Storage bucket 'documents', URL stored in documents.file_url"
+    },
+
+    "CompetitorIntelligence": {
+      "path": "/competitor-intelligence",
+      "file": "src/pages/CompetitorIntelligence.tsx",
+      "access": "protected",
+      "description": "Full CRUD competitor tracking with win rate and market share analytics",
+      "hooks": ["useCompetitors"],
+      "features": [
+        "KPI cards: Market Leader, Total Tracked Bids, Avg Bid Value, Competitors Tracked",
+        "Win Rate vs Market Share bar chart (Recharts BarChart)",
+        "Competitor profiles table with edit/delete actions",
+        "Add/Edit dialog with all competitor fields",
+        "Delete confirmation AlertDialog",
+        "Empty state with Add First Competitor CTA"
+      ],
+      "addEditDialog": {
+        "fields": ["name*", "size(SME|Large|Major)", "specialty(comma-separated)", "wins", "losses", "average_bid_value(£)", "market_share(%)"],
+        "autoCalculated": "win_rate = wins / (wins + losses) × 100",
+        "autoCalculated2": "total_bids = wins + losses (if total_bids not set)"
+      }
+    },
+
+    "CompetitorSWOT": {
+      "path": "/competitor-swot",
+      "file": "src/pages/CompetitorSWOT.tsx",
+      "access": "protected",
+      "description": "Automated SWOT analysis per competitor with AI-generated strategic insights",
+      "hooks": ["useCompetitors"],
+      "features": [
+        "Competitor selector dropdown",
+        "SWOT quadrant display (Strengths / Weaknesses / Opportunities / Threats)",
+        "AI-generated insights per SWOT item with confidence scores",
+        "Competitive positioning matrix scatter plot",
+        "Strategic recommendations panel",
+        "Empty state when no competitors exist"
+      ],
+      "note": "SWOT data is derived/generated from competitor stats, not a separate table"
+    },
+
+    "WinLossAnalysis": {
+      "path": "/win-loss-analysis",
+      "file": "src/pages/WinLossAnalysis.tsx",
+      "access": "protected",
+      "description": "Head-to-head competition records with tactics effectiveness analysis",
+      "hooks": ["useHeadToHead", "useCompetitors"],
+      "features": [
+        "Overall win/loss summary stats",
+        "Head-to-head table: contract, authority, competitor, outcome, scores",
+        "Tactics effectiveness analysis (which tactics correlate with wins)",
+        "AI-powered strategy recommendations",
+        "Add competition record dialog",
+        "Empty state with Add First Competition CTA"
+      ],
+      "addDialog": {
+        "fields": ["contract_title*", "authority*", "sector", "competitor_name*", "outcome(won|lost)", "your_score", "competitor_score", "tactics_used(comma-sep)", "winning_factors(comma-sep)", "losing_factors(comma-sep)", "contract_value(£)", "bid_date"]
+      }
+    },
+
+    "TeamPerformance": {
+      "path": "/team-performance",
+      "file": "src/pages/TeamPerformance.tsx",
+      "access": "protected",
+      "description": "Individual team member analytics correlated with bid outcomes",
+      "hooks": ["useTeamMembers"],
+      "features": [
+        "Team overview stats: total members, avg win rate, top performer",
+        "Member cards with win rate bar, expertise badges, bid history",
+        "Win rate ranking table",
+        "Expertise coverage heatmap",
+        "Add/Edit/Delete team member CRUD",
+        "Role distribution chart"
+      ],
+      "memberRoles": ["Project Manager", "Technical Lead", "Bid Writer", "Subject Matter Expert", "Pricing Specialist"]
+    },
+
+    "TeamCollaborationNetwork": {
+      "path": "/collaboration-network",
+      "file": "src/pages/TeamCollaborationNetwork.tsx",
+      "access": "protected",
+      "description": "Graph-based network visualization of team collaboration patterns",
+      "hooks": ["useTeamMembers", "useTeamCollaborations"],
+      "features": [
+        "Network graph SVG — nodes (members) + edges (collaborations) sized by chemistry",
+        "Chemistry filter (excellent / good / neutral / poor)",
+        "Collaboration statistics table: pairing, win rate, chemistry score",
+        "Centrality and isolation score analysis",
+        "Optimal chemistry recommendations AI panel",
+        "Pattern detection: 7 collaboration archetypes"
+      ],
+      "chemistryLevels": ["excellent (≥80% win rate)", "good (65–79%)", "neutral (50–64%)", "poor (<50%)"]
+    },
+
+    "CollaborationTimeline": {
+      "path": "/collaboration-timeline",
+      "file": "src/pages/CollaborationTimeline.tsx",
+      "access": "protected",
+      "description": "Chronological event tracking of team dynamics with chemistry evolution",
+      "hooks": ["useCollaborationTimeline", "useCriticalMoments"],
+      "features": [
+        "Area chart — chemistry score evolution over time (Recharts AreaChart)",
+        "Chronological event list with type badges and participant tags",
+        "Critical moments panel with before/after metrics",
+        "Future collaboration forecasts with projected chemistry scores",
+        "Add timeline event dialog",
+        "Event type filter"
+      ],
+      "eventTypes": ["team_formation", "chemistry_change", "project_win", "project_loss", "role_change", "new_hire", "achievement"]
+    },
+
+    "LiveCollaborationTracker": {
+      "path": "/live-collaboration-tracker",
+      "file": "src/pages/LiveCollaborationTracker.tsx",
+      "access": "protected",
+      "description": "Real-time monitoring of team interactions during active bids",
+      "hooks": ["useActiveBidTracking", "useTeamInteractions", "useCommunicationMetrics", "useDeviationAlerts", "useEmergingPartnerships", "useLiveActivities"],
+      "polling": "15–30 second intervals for live feel",
+      "features": [
+        "Active bid selector with chemistry score and configuration match",
+        "Communication heatmap: emails sent/received, meeting hours, doc edits, Slack, calls",
+        "Chemistry score trend per team pairing",
+        "Deviation alerts panel with severity badges (critical/high/medium/low)",
+        "Emerging partnerships detection with confidence scores",
+        "Live activity feed with interaction log",
+        "Team configuration match indicator vs optimal"
+      ],
+      "alertTypes": ["team_mismatch", "chemistry_drop", "low_interaction", "suboptimal_pairing"]
+    },
+
+    "InteractionQualityAnalysis": {
+      "path": "/interaction-quality",
+      "file": "src/pages/InteractionQualityAnalysis.tsx",
+      "access": "protected",
+      "description": "Sentiment analysis and quality-weighted chemistry scores beyond frequency counting",
+      "hooks": ["useTeamMembers", "useTeamInteractions"],
+      "features": [
+        "Sentiment dashboard: positive/negative/neutral % breakdown",
+        "Quality-weighted chemistry vs frequency-based chemistry comparison",
+        "Tone classification: enthusiastic / collaborative / frustrated / defensive",
+        "19 partnership quality scores ranked by weighted chemistry delta",
+        "7 coaching recommendations with action items and priority badges",
+        "20 quality benchmarks: meeting effectiveness, email quality, responsiveness, problem-solving",
+        "Resolution speed tracking"
+      ],
+      "qualityTiers": ["Elite (90+)", "High (80–89)", "Standard (70–79)", "Developing (<70)"]
+    },
+
+    "BillingPage": {
+      "path": "/billing",
+      "file": "src/pages/BillingPage.tsx",
+      "access": "protected",
+      "description": "Subscription management and invoice history",
+      "hooks": ["useInvoices", "useAuth"],
+      "features": [
+        "Current plan card (name, monthly cost, billing cycle, account email)",
+        "Upgrade / Switch to Annual / Cancel buttons",
+        "Payment method panel (Add card CTA)",
+        "Plan feature checklist",
+        "Invoice history table with status badges and download links",
+        "Empty state when no invoices"
+      ],
+      "invoiceStatuses": ["paid", "pending", "failed"]
+    }
+  },
+
+  "database": {
+    "provider": "PostgreSQL via OnSpace Cloud",
+    "rlsEnabled": true,
+    "allTablesPolicyPattern": "user_id = auth.uid() for authenticated users",
+    "tables": {
+      "user_profiles": {
+        "description": "Auto-created by trigger on auth.users insert",
+        "columns": {
+          "id": "uuid PK → auth.users.id",
+          "username": "text nullable",
+          "email": "text NOT NULL"
+        },
+        "triggers": ["on_auth_user_created", "on_auth_user_updated"],
+        "functions": ["handle_new_user", "sync_user_metadata"]
+      },
+
+      "bids": {
+        "description": "Active and historical bid opportunities",
+        "columns": {
+          "id": "uuid PK default gen_random_uuid()",
+          "user_id": "uuid FK → user_profiles.id ON DELETE CASCADE",
+          "title": "text NOT NULL",
+          "authority": "text NOT NULL — contracting authority name",
+          "deadline": "timestamptz NOT NULL",
+          "win_probability": "numeric default 0 (0–100)",
+          "compliance_score": "numeric default 0 (0–100)",
+          "status": "text CHECK (active|submitted|won|lost) default active",
+          "value": "numeric default 0 — contract value in GBP",
+          "created_at": "timestamptz default now()",
+          "updated_at": "timestamptz default now()"
+        },
+        "indexes": ["user_id", "status", "deadline"],
+        "hook": "useBids → addBid, updateBid, deleteBid"
+      },
+
+      "competitors": {
+        "description": "Competitor organisations tracked for intelligence",
+        "columns": {
+          "id": "uuid PK",
+          "user_id": "uuid FK → user_profiles.id ON DELETE CASCADE",
+          "name": "text NOT NULL",
+          "size": "text CHECK (SME|Large|Major)",
+          "specialty": "text[] default '{}'",
+          "total_bids": "integer default 0",
+          "wins": "integer default 0",
+          "losses": "integer default 0",
+          "win_rate": "numeric default 0 — auto-calculated",
+          "average_bid_value": "numeric default 0",
+          "market_share": "numeric default 0 (0–100%)",
+          "created_at": "timestamptz default now()"
+        },
+        "hook": "useCompetitors → addCompetitor, updateCompetitor, deleteCompetitor"
+      },
+
+      "team_members": {
+        "description": "Individual bid team members and their performance metrics",
+        "columns": {
+          "id": "uuid PK",
+          "user_id": "uuid FK → user_profiles.id ON DELETE CASCADE",
+          "name": "text NOT NULL",
+          "role": "text CHECK (Project Manager|Technical Lead|Bid Writer|Subject Matter Expert|Pricing Specialist)",
+          "expertise": "text[] — skill tags",
+          "total_bids": "integer default 0",
+          "wins": "integer default 0",
+          "losses": "integer default 0",
+          "win_rate": "numeric default 0",
+          "avg_score_contribution": "numeric default 0",
+          "years_experience": "integer default 0",
+          "created_at": "timestamptz default now()"
+        },
+        "hook": "useTeamMembers → addMember, updateMember, deleteMember"
+      },
+
+      "documents": {
+        "description": "Uploaded tender documents and AI analysis results",
+        "columns": {
+          "id": "uuid PK",
+          "user_id": "uuid FK → user_profiles.id ON DELETE CASCADE",
+          "name": "text NOT NULL — file name",
+          "status": "text CHECK (processing|completed|failed) default processing",
+          "size": "text — human-readable file size",
+          "file_url": "text — Supabase Storage public URL",
+          "ppn0620_compliance": "boolean — PPN06/20 compliance result",
+          "key_requirements": "text[] — extracted requirements",
+          "deadlines": "text[] — extracted deadline strings",
+          "created_at": "timestamptz default now()"
+        },
+        "storageNote": "Files uploaded to bucket 'documents', URL stored in file_url",
+        "hook": "useDocuments → addDocument, updateDocument"
+      },
+
+      "invoices": {
+        "description": "Billing records for subscription payments",
+        "columns": {
+          "id": "uuid PK",
+          "user_id": "uuid FK → user_profiles.id ON DELETE CASCADE",
+          "invoice_date": "timestamptz default now()",
+          "amount": "numeric NOT NULL — GBP amount",
+          "status": "text CHECK (paid|pending|failed) default pending",
+          "download_url": "text — PDF download link",
+          "created_at": "timestamptz default now()"
+        },
+        "hook": "useInvoices (read-only)"
+      },
+
+      "head_to_head_competitions": {
+        "description": "Historical competition records against specific competitors",
+        "columns": {
+          "id": "uuid PK",
+          "user_id": "uuid FK → user_profiles.id ON DELETE CASCADE",
+          "contract_title": "text NOT NULL",
+          "authority": "text NOT NULL",
+          "sector": "text nullable",
+          "competitor_id": "uuid FK → competitors.id ON DELETE SET NULL nullable",
+          "competitor_name": "text NOT NULL",
+          "contract_value": "numeric default 0",
+          "bid_date": "timestamptz nullable",
+          "outcome": "text CHECK (won|lost) nullable",
+          "your_score": "numeric default 0 (0–100)",
+          "competitor_score": "numeric default 0 (0–100)",
+          "tactics_used": "text[]",
+          "winning_factors": "text[]",
+          "losing_factors": "text[]",
+          "created_at": "timestamptz default now()"
+        },
+        "hook": "useHeadToHead → addCompetition"
+      },
+
+      "team_collaborations": {
+        "description": "Pairwise collaboration statistics between team members",
+        "columns": {
+          "id": "uuid PK",
+          "user_id": "uuid FK → user_profiles.id ON DELETE CASCADE",
+          "member_id1": "uuid FK → team_members.id ON DELETE CASCADE",
+          "member_name1": "text NOT NULL",
+          "role1": "text NOT NULL",
+          "member_id2": "uuid FK → team_members.id ON DELETE CASCADE",
+          "member_name2": "text NOT NULL",
+          "role2": "text NOT NULL",
+          "collaborations": "integer default 0 — total bids worked together",
+          "wins": "integer default 0",
+          "losses": "integer default 0",
+          "win_rate": "numeric default 0",
+          "avg_combined_score": "numeric default 0",
+          "chemistry": "text CHECK (excellent|good|neutral|poor) nullable",
+          "created_at": "timestamptz default now()"
+        },
+        "hook": "useTeamCollaborations → addCollaboration, updateCollaboration"
+      },
+
+      "active_bid_tracking": {
+        "description": "Live team configuration and chemistry for bids in progress",
+        "columns": {
+          "id": "uuid PK",
+          "user_id": "uuid FK → user_profiles.id ON DELETE CASCADE",
+          "bid_id": "uuid FK → bids.id ON DELETE CASCADE nullable",
+          "bid_title": "text NOT NULL",
+          "authority": "text NOT NULL",
+          "deadline": "timestamptz nullable",
+          "days_remaining": "integer nullable",
+          "current_team": "jsonb — {member_id: role} map",
+          "optimal_team": "jsonb — recommended {member_id: role} map",
+          "configuration_match": "numeric default 0 (0–100%)",
+          "current_chemistry": "numeric default 0 (0–100)",
+          "predicted_chemistry": "numeric default 0 (0–100)",
+          "competitor_id": "uuid FK → competitors.id ON DELETE SET NULL nullable",
+          "competitor_name": "text nullable",
+          "created_at": "timestamptz default now()",
+          "updated_at": "timestamptz default now()"
+        },
+        "hook": "useActiveBidTracking → addTracking, updateTracking"
+      },
+
+      "team_interactions": {
+        "description": "Individual interaction log entries between team members",
+        "columns": {
+          "id": "uuid PK",
+          "user_id": "uuid FK → user_profiles.id ON DELETE CASCADE",
+          "bid_id": "uuid FK → bids.id ON DELETE CASCADE nullable",
+          "member1_id": "uuid FK → team_members.id ON DELETE CASCADE",
+          "member1_name": "text NOT NULL",
+          "member2_id": "uuid FK → team_members.id ON DELETE CASCADE",
+          "member2_name": "text NOT NULL",
+          "interaction_type": "text CHECK (email|meeting|document_collab|slack|call)",
+          "duration": "integer nullable — minutes",
+          "intensity": "text CHECK (low|medium|high)",
+          "topic": "text nullable",
+          "created_at": "timestamptz default now()"
+        },
+        "hook": "useTeamInteractions(bidId?) → logInteraction",
+        "polling": "30s interval"
+      },
+
+      "communication_metrics": {
+        "description": "Aggregated communication statistics per member per bid",
+        "columns": {
+          "id": "uuid PK",
+          "user_id": "uuid FK → user_profiles.id ON DELETE CASCADE",
+          "bid_id": "uuid FK → bids.id ON DELETE CASCADE nullable",
+          "member_id": "uuid FK → team_members.id ON DELETE CASCADE",
+          "member_name": "text NOT NULL",
+          "emails_sent": "integer default 0",
+          "emails_received": "integer default 0",
+          "meeting_hours": "numeric default 0",
+          "document_edits": "integer default 0",
+          "slack_messages": "integer default 0",
+          "call_minutes": "integer default 0",
+          "total_interactions": "integer default 0 — computed sum",
+          "last_active": "timestamptz default now()",
+          "created_at": "timestamptz default now()",
+          "updated_at": "timestamptz default now()"
+        },
+        "hook": "useCommunicationMetrics(bidId?) → upsertMetrics"
+      },
+
+      "chemistry_updates": {
+        "description": "Log of chemistry score changes between member pairs",
+        "columns": {
+          "id": "uuid PK",
+          "user_id": "uuid FK → user_profiles.id ON DELETE CASCADE",
+          "bid_id": "uuid FK → bids.id ON DELETE CASCADE nullable",
+          "member1_id": "uuid FK → team_members.id ON DELETE CASCADE",
+          "member1_name": "text NOT NULL",
+          "member2_id": "uuid FK → team_members.id ON DELETE CASCADE",
+          "member2_name": "text NOT NULL",
+          "previous_chemistry": "numeric NOT NULL",
+          "current_chemistry": "numeric NOT NULL",
+          "change_reason": "text nullable",
+          "impact": "text CHECK (positive|negative|neutral)",
+          "created_at": "timestamptz default now()"
+        },
+        "hook": "useChemistryUpdates(bidId?) → logChemistryUpdate"
+      },
+
+      "deviation_alerts": {
+        "description": "Alerts when team configuration deviates from recommendations",
+        "columns": {
+          "id": "uuid PK",
+          "user_id": "uuid FK → user_profiles.id ON DELETE CASCADE",
+          "bid_id": "uuid FK → bids.id ON DELETE CASCADE nullable",
+          "alert_type": "text CHECK (team_mismatch|chemistry_drop|low_interaction|suboptimal_pairing)",
+          "severity": "text CHECK (critical|high|medium|low)",
+          "title": "text NOT NULL",
+          "description": "text nullable",
+          "current_value": "text nullable — actual metric value",
+          "expected_value": "text nullable — recommended value",
+          "recommendation": "text nullable — action to take",
+          "acknowledged": "boolean default false",
+          "created_at": "timestamptz default now()"
+        },
+        "hook": "useDeviationAlerts(bidId?) → acknowledgeAlert, addAlert",
+        "polling": "30s interval"
+      },
+
+      "emerging_partnerships": {
+        "description": "Newly detected high-potential member pairings",
+        "columns": {
+          "id": "uuid PK",
+          "user_id": "uuid FK → user_profiles.id ON DELETE CASCADE",
+          "bid_id": "uuid FK → bids.id ON DELETE CASCADE nullable",
+          "member1_id": "uuid FK → team_members.id ON DELETE CASCADE",
+          "member1_name": "text NOT NULL",
+          "role1": "text nullable",
+          "member2_id": "uuid FK → team_members.id ON DELETE CASCADE",
+          "member2_name": "text NOT NULL",
+          "role2": "text nullable",
+          "interaction_count": "integer default 0",
+          "emerging_chemistry": "numeric default 0 (0–100)",
+          "collaboration_pattern": "text nullable — pattern archetype name",
+          "confidence": "numeric default 0 (0–100%) — detection confidence",
+          "detected_at": "timestamptz default now()",
+          "created_at": "timestamptz default now()"
+        },
+        "hook": "useEmergingPartnerships(bidId?)"
+      },
+
+      "live_activities": {
+        "description": "Real-time activity feed entries for bid collaboration events",
+        "columns": {
+          "id": "uuid PK",
+          "user_id": "uuid FK → user_profiles.id ON DELETE CASCADE",
+          "bid_id": "uuid FK → bids.id ON DELETE CASCADE nullable",
+          "activity_type": "text CHECK (interaction|chemistry_change|deviation|milestone)",
+          "description": "text NOT NULL — human-readable event description",
+          "participants": "text[] — member names involved",
+          "impact": "text CHECK (positive|negative|neutral)",
+          "created_at": "timestamptz default now()"
+        },
+        "hook": "useLiveActivities(bidId?) → logActivity",
+        "polling": "15s interval"
+      },
+
+      "collaboration_timeline_events": {
+        "description": "Historical team collaboration events for timeline visualization",
+        "columns": {
+          "id": "uuid PK",
+          "user_id": "uuid FK → user_profiles.id ON DELETE CASCADE",
+          "event_date": "timestamptz NOT NULL",
+          "event_type": "text CHECK (team_formation|chemistry_change|project_win|project_loss|role_change|new_hire|achievement)",
+          "title": "text NOT NULL",
+          "description": "text nullable",
+          "participants": "text[] — member names",
+          "impact": "text CHECK (positive|negative|neutral)",
+          "chemistry_score": "numeric nullable — team chemistry at this point",
+          "related_project_id": "uuid FK → bids.id ON DELETE SET NULL nullable",
+          "created_at": "timestamptz default now()"
+        },
+        "hook": "useCollaborationTimeline → addEvent"
+      },
+
+      "critical_moments": {
+        "description": "Significant events that caused measurable shifts in team dynamics",
+        "columns": {
+          "id": "uuid PK",
+          "user_id": "uuid FK → user_profiles.id ON DELETE CASCADE",
+          "moment_date": "timestamptz NOT NULL",
+          "moment_type": "text CHECK (new_hire|role_change|major_win|major_loss|team_restructure|partnership_formed)",
+          "title": "text NOT NULL",
+          "description": "text nullable",
+          "team_members_affected": "text[]",
+          "impact": "text CHECK (high|medium|low)",
+          "before_win_rate": "numeric nullable",
+          "before_chemistry": "numeric nullable",
+          "after_win_rate": "numeric nullable",
+          "after_chemistry": "numeric nullable",
+          "consequences": "text[] — bullet-point outcomes",
+          "created_at": "timestamptz default now()"
+        },
+        "hook": "useCriticalMoments → addMoment"
+      }
+    }
+  },
+
+  "dataHooks": {
+    "file": "src/hooks/useData.ts",
+    "baseHook": "useSupabaseTable<T>(table, options?) — generic fetch with optional filter + order by created_at desc",
+    "hooks": [
+      { "name": "useBids",                   "table": "bids",                         "methods": ["addBid", "updateBid", "deleteBid"] },
+      { "name": "useCompetitors",            "table": "competitors",                   "methods": ["addCompetitor", "updateCompetitor", "deleteCompetitor"] },
+      { "name": "useTeamMembers",            "table": "team_members",                  "methods": ["addMember", "updateMember", "deleteMember"] },
+      { "name": "useDocuments",              "table": "documents",                     "methods": ["addDocument", "updateDocument"] },
+      { "name": "useInvoices",               "table": "invoices",                      "methods": [] },
+      { "name": "useHeadToHead",             "table": "head_to_head_competitions",     "methods": ["addCompetition"] },
+      { "name": "useTeamCollaborations",     "table": "team_collaborations",           "methods": ["addCollaboration", "updateCollaboration"] },
+      { "name": "useActiveBidTracking",      "table": "active_bid_tracking",          "methods": ["addTracking", "updateTracking"] },
+      { "name": "useTeamInteractions",       "table": "team_interactions",            "methods": ["logInteraction"], "polling": "30s", "filterBy": "bid_id" },
+      { "name": "useChemistryUpdates",       "table": "chemistry_updates",            "methods": ["logChemistryUpdate"], "filterBy": "bid_id" },
+      { "name": "useDeviationAlerts",        "table": "deviation_alerts",             "methods": ["acknowledgeAlert", "addAlert"], "polling": "30s", "filterBy": "bid_id" },
+      { "name": "useEmergingPartnerships",   "table": "emerging_partnerships",        "methods": [], "filterBy": "bid_id" },
+      { "name": "useLiveActivities",         "table": "live_activities",              "methods": ["logActivity"], "polling": "15s", "filterBy": "bid_id" },
+      { "name": "useCommunicationMetrics",   "table": "communication_metrics",        "methods": ["upsertMetrics"], "filterBy": "bid_id" },
+      { "name": "useCollaborationTimeline",  "table": "collaboration_timeline_events","methods": ["addEvent"] },
+      { "name": "useCriticalMoments",        "table": "critical_moments",             "methods": ["addMoment"] }
+    ],
+    "returnShape": "{ data[], loading, error, refetch, ...mutationFns }"
+  },
+
+  "constants": {
+    "files": {
+      "src/constants/index.ts": {
+        "exports": ["PRICING_TIERS", "FEATURE_HIGHLIGHTS"],
+        "note": "Only non-user-specific static data. All mock arrays removed."
+      },
+      "src/constants/competitors.ts": { "exports": ["empty arrays — ready for real data"] },
+      "src/constants/team.ts": { "exports": ["empty arrays — ready for real data"] },
+      "src/constants/liveTracking.ts": { "exports": ["empty arrays — ready for real data"] },
+      "src/constants/qualityMetrics.ts": { "exports": ["empty arrays — ready for real data"] }
+    },
+    "PRICING_TIERS": [
+      {
+        "id": "starter",
+        "name": "Starter",
+        "description": "For small bid teams",
+        "monthlyPrice": 299,
+        "features": ["5 active bids", "Basic competitor tracking", "Document analysis (10/month)", "Email support"]
+      },
+      {
+        "id": "professional",
+        "name": "Professional",
+        "description": "For growing bid operations",
+        "monthlyPrice": 699,
+        "features": ["25 active bids", "Full competitor intelligence", "Unlimited documents", "Team performance analytics", "Priority support"]
+      },
+      {
+        "id": "enterprise",
+        "name": "Enterprise",
+        "description": "For large procurement teams",
+        "monthlyPrice": 1499,
+        "features": ["Unlimited bids", "Live collaboration tracker", "Advanced AI insights", "Custom integrations", "Dedicated account manager", "SLA guarantee"]
+      }
+    ]
+  },
+
+  "fileStructure": {
+    "root": {
+      ".env": "VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY (auto-generated by OnSpace)",
+      "index.html": "App entry point",
+      "package.json": "READ-ONLY — managed by OnSpace",
+      "tailwind.config.ts": "Custom theme: neon-green, neon-glow, card-glow, bg-matrix-pattern, animate-slide-up",
+      "vite.config.ts": "@/ path alias → src/"
+    },
+    "src": {
+      "main.tsx": "ReactDOM.createRoot → <App />",
+      "App.tsx": "AuthProvider → BrowserRouter → ProtectedRoute + all Routes",
+      "index.css": "Tailwind directives + CSS custom properties (HSL vars) + global utilities",
+      "assets/hero-bg.jpg": "Landing page hero background image",
+      "components/layout/DashboardLayout.tsx": "Sidebar + top nav + children slot",
+      "components/ui/*": "shadcn/ui components — READ-ONLY",
+      "contexts/AuthContext.tsx": "AuthProvider + useAuth hook",
+      "hooks/useData.ts": "All 16 Supabase data hooks",
+      "lib/supabase.ts": "Supabase client + Tables type map",
+      "lib/auth.ts": "authService (sendOtp, verifyOtp, signIn, signOut) + mapSupabaseUser",
+      "types/index.ts": "TypeScript interfaces for all domain models",
+      "constants/index.ts": "PRICING_TIERS + FEATURE_HIGHLIGHTS",
+      "pages/": "15 page components (see pages section)"
+    }
+  },
+
+  "futureEnhancements": {
+    "priority": "high",
+    "items": [
+      {
+        "feature": "Team Member CRUD on TeamPerformance",
+        "description": "Add/Edit/Delete dialog for team members using useTeamMembers hook",
+        "status": "planned"
+      },
+      {
+        "feature": "Win/Loss Entry Form on WinLossAnalysis",
+        "description": "Dialog form for head_to_head_competitions with all fields",
+        "status": "planned"
+      },
+      {
+        "feature": "Document Upload to Supabase Storage",
+        "description": "Create bucket 'documents', upload PDF, store URL in documents table",
+        "status": "planned"
+      },
+      {
+        "feature": "AI Document Analysis via Edge Function",
+        "description": "Edge function to parse PDF content, extract requirements/deadlines, update document status",
+        "status": "planned"
+      },
+      {
+        "feature": "Bid Edit & Delete on Dashboard",
+        "description": "Edit icon opens pre-filled dialog using updateBid, delete with confirmation using deleteBid",
+        "status": "planned"
+      },
+      {
+        "feature": "Log Interaction Form on Live Tracker",
+        "description": "Manual interaction entry form: type, members, duration, intensity, topic → team_interactions",
+        "status": "planned"
+      },
+      {
+        "feature": "Stripe Payment Integration",
+        "description": "Connect subscription tiers to Stripe recurring payments with invoice sync",
+        "status": "planned"
+      },
+      {
+        "feature": "CSV Data Import",
+        "description": "Bulk import competitors or bid history from CSV files",
+        "status": "planned"
+      },
+      {
+        "feature": "Email Notifications",
+        "description": "Alert emails for bid deadlines, deviation alerts, and chemistry drops",
+        "status": "planned"
+      },
+      {
+        "feature": "AI Win Probability Engine",
+        "description": "Edge function that recalculates win_probability based on competitor history, team chemistry, and compliance score",
+        "status": "planned"
+      }
+    ]
+  },
+
+  "knownConstraints": [
+    "OnSpace Cloud does not support Supabase Realtime — polling used instead (15–30s intervals)",
+    "package.json is READ-ONLY — cannot add/remove dependencies directly",
+    "src/components/ui/* are READ-ONLY shadcn/ui components",
+    "Only Email and Google OAuth auth providers supported (Google OAuth not enabled currently)",
+    "No server-side runtime (no Node.js/Python) — Edge Functions use Deno",
+    "PostgreSQL request payload limit 1MB — never store base64 media in DB",
+    "Edge Function client request limit 10MB"
+  ],
+
+  "generatedAt": "2026-05-12",
+  "generatedBy": "OnspaceAI",
+  "blueprintVersion": "1.0.0"
+}
